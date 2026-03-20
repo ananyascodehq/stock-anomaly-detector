@@ -1,0 +1,438 @@
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* Premium Dark Theme Palette */
+  --bg-color: #09090b; /* Zinc 950 */
+  --bg-gradient-start: #020617;
+  --bg-gradient-end: #0f172a;
+  
+  /* Glassmorphism settings */
+  --glass-bg: rgba(24, 24, 27, 0.65); /* Zinc 900 with opacity */
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-highlight: rgba(255, 255, 255, 0.03);
+  
+  /* Accents - Modern Cyberpunk */
+  --accent-cyan: #06b6d4;
+  --accent-cyan-glow: rgba(6, 182, 212, 0.4);
+  --accent-emerald: #10b981;
+  --accent-rose: #f43f5e;
+  --accent-violet: #8b5cf6;
+  
+  /* Typography */
+  --text-main: #f8fafc;
+  --text-muted: #a1a1aa; /* Zinc 400 */
+}
+
+/* Background & Base */
+body {
+  background: radial-gradient(circle at 50% 0%, var(--bg-gradient-end), var(--bg-gradient-start) 100%);
+  background-attachment: fixed;
+  color: var(--text-main);
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  margin-top: 0;
+  color: var(--text-main);
+  letter-spacing: -0.025em;
+}
+
+/* Header styling */
+.dashboard-header {
+  padding: 1.25rem 2.5rem;
+  background: rgba(9, 9, 11, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+}
+
+.dashboard-title {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: transparent;
+  background: linear-gradient(90deg, #f8fafc, var(--text-muted));
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+/* Animated Online Indicator */
+.system-status {
+  font-family: 'Fira Code', monospace;
+  color: var(--accent-emerald);
+  display: flex;
+  align-items: center;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+
+.indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--accent-emerald);
+  display: inline-block;
+  margin-right: 10px;
+  box-shadow: 0 0 10px var(--accent-emerald);
+  animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* Main Content Container */
+.dashboard-container {
+  padding: 2.5rem 2rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  max-width: 1600px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Premium KPI Cards (Glassmorphism) */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.kpi-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 1.75rem;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(135deg, var(--glass-highlight) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+.kpi-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(6, 182, 212, 0.3);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(6, 182, 212, 0.1);
+}
+
+.kpi-title {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+}
+
+.kpi-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  font-family: 'Fira Code', monospace;
+  margin: 0;
+  color: var(--text-main);
+}
+
+/* Chart Container Glassmorphism */
+.chart-container-wrapper {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  flex: 1;
+  min-height: 450px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.chart-title {
+  font-size: 1.05rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  margin: 0;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-transform: uppercase;
+}
+
+.chart-title::before {
+  content: '';
+  display: block;
+  width: 4px;
+  height: 16px;
+  background: var(--accent-cyan);
+  border-radius: 2px;
+  box-shadow: 0 0 8px var(--accent-cyan-glow);
+}
+
+.chart-body {
+  flex: 1;
+  background: transparent;
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Controls / Dropdown */
+.controls-row {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  background: var(--glass-bg);
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  position: relative;
+  z-index: 1000; /* Stacks above KPI cards */
+}
+
+.control-label {
+  font-family: 'Inter', sans-serif;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Base dash dropdown styling for dark theme */
+.cyber-dropdown {
+  min-width: 240px;
+  font-family: 'Fira Code', monospace;
+  position: relative;
+  z-index: 1000 !important;
+}
+
+/* Main Button Wrapper */
+button.dash-dropdown,
+.dash-dropdown.cyber-dropdown,
+.dash-dropdown.cyber-dropdown > * {
+  background-color: #18181b !important;
+  color: var(--accent-cyan) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+}
+.dash-dropdown.cyber-dropdown:hover {
+  border-color: var(--accent-cyan) !important;
+}
+
+/* Force dark mode on any dash-dropdown related portal or popup wrapper */
+div[class*="dash-dropdown"] {
+  background-color: #18181b !important;
+  border-color: var(--accent-cyan) !important;
+  color: var(--text-main) !important;
+}
+
+/* The search input inside the dropdown (inline style override) */
+input.dash-dropdown-search,
+.dash-dropdown-search {
+  background-color: #18181b !important;
+  color: var(--text-main) !important;
+  border: none !important;
+  border-bottom: 1px solid var(--accent-cyan) !important;
+  font-family: 'Fira Code', monospace;
+  padding: 8px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* The options list */
+.dash-options-list-option,
+.dash-dropdown-option {
+  background-color: #18181b !important;
+  color: var(--text-muted) !important;
+  padding: 10px 15px !important;
+  transition: all 0.1s;
+  cursor: pointer;
+}
+
+/* Hovered Option */
+.dash-options-list-option:hover,
+.dash-dropdown-option:hover {
+  background-color: rgba(6, 182, 212, 0.15) !important;
+  color: var(--accent-cyan) !important;
+}
+
+/* Selected Option */
+.dash-options-list-option.selected,
+.dash-dropdown-option.selected {
+  background-color: rgba(6, 182, 212, 0.3) !important;
+  color: var(--text-main) !important;
+}
+
+/* User Guide / Operations Manual */
+.guide-container {
+  margin-top: 1rem;
+}
+
+/* Fix Dash DataTable stark white row hover and pink outline selection defaults */
+.dash-table-container .dash-spreadsheet tbody tr:hover td,
+.dash-table-container .dash-spreadsheet tbody tr:hover th {
+  background-color: rgba(255, 255, 255, 0.05) !important; 
+}
+
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet td.focused,
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet th.focused {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  outline: none !important;
+  box-shadow: inset 0 0 0 1px var(--accent-cyan) !important;
+}
+
+/* Strip any internal background-colors on the table wrapper that might conflict */
+.dash-table-container .dash-spreadsheet {
+  background-color: transparent !important;
+}
+
+.guide-details {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.guide-details:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.guide-details[open] {
+  border-color: var(--glass-border);
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.guide-summary {
+  font-family: 'Inter', sans-serif;
+  color: var(--text-main);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  outline: none;
+  font-size: 0.95rem;
+}
+
+.guide-summary::-webkit-details-marker {
+  display: none;
+}
+
+.guide-summary::before {
+  content: '\25B6';
+  font-size: 0.7rem;
+  color: var(--accent-cyan);
+  transition: transform 0.2s ease;
+}
+
+.guide-details[open] .guide-summary::before {
+  transform: rotate(90deg);
+}
+
+.guide-content {
+  padding: 2rem 0.5rem 0.5rem 0.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2.5rem;
+  cursor: default;
+  border-top: 1px solid var(--glass-border);
+  margin-top: 1.25rem;
+}
+
+.guide-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.guide-item-title {
+  font-family: 'Fira Code', monospace;
+  color: var(--accent-cyan);
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+
+.guide-item-text {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.text-danger { 
+  color: var(--accent-rose); 
+  font-weight: 500;
+  background: rgba(244, 63, 94, 0.05);
+  padding: 0.5rem;
+  border-radius: 4px;
+  border-left: 2px solid var(--accent-rose);
+}
+
+/* Custom Scrollbar for a polished look */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-color);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
