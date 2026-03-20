@@ -1,0 +1,10 @@
+yfinance
+pandas
+numpy
+scipy
+scikit-learn
+tensorflow
+dash
+plotly
+python-dotenv
+pytest
