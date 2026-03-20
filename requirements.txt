@@ -8,3 +8,4 @@ dash
 plotly
 python-dotenv
 pytest
+fpdf
