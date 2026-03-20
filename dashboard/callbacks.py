@@ -8,10 +8,12 @@ Callbacks read ONLY from the SQLite database — no model inference here.
 import sqlite3
 import pandas as pd
 import plotly.graph_objects as go
-from dash import Input, Output, callback, State, html, ctx, no_update
+from dash import Input, Output, callback, State, html, ctx, no_update, dcc
+from .pdf_generator import generate_anomaly_pdf
 
 import sys
 import os
+import datetime
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from config import Config
@@ -387,3 +389,31 @@ def inject_anomaly_into_ticker(n_clicks, ticker):
         f"🚨 SYNTHETIC CRASH ARMED FOR {ticker}! The models will flag it within 60 seconds.",
         className="toast-message"
     )
+# ════════════════════════════════════════════════════════════════════
+# Callback 7 — export_pdf
+# ════════════════════════════════════════════════════════════════════
+@callback(
+    Output("download-pdf-component", "data"),
+    Input("export-pdf-btn", "n_clicks"),
+    State("alert-table", "data"),
+    prevent_initial_call=True,
+)
+def export_anomaly_log_pdf(n_clicks, table_data):
+    if not n_clicks or not table_data:
+        return no_update
+        
+    df = pd.DataFrame(table_data)
+    
+    # We want to format columns properly
+    df = df[["timestamp", "ticker", "zscore_score", "if_score", "lstm_score", "ensemble_score", "is_flagged"]]
+    
+    # Create temp file
+    temp_dir = os.path.join(os.path.dirname(__file__), "..", "tmp")
+    if not os.path.exists(temp_dir):
+        os.makedirs(temp_dir)
+        
+    pdf_path = os.path.join(temp_dir, f"anomaly_report_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf")
+    
+    generate_anomaly_pdf(df, pdf_path)
+    
+    return dcc.send_file(pdf_path)

@@ -60,6 +60,11 @@ def create_layout(app):
                                 className="injector-container",
                                 children=[
                                     html.Button(
+                                        "EXPORT LOGS (PDF)",
+                                        id="export-pdf-btn",
+                                        className="cyber-btn-export"
+                                    ),
+                                    html.Button(
                                         "INJECT SYNTHETIC ANOMALY",
                                         id="inject-status-btn",
                                         className="cyber-btn-inject"
@@ -70,7 +75,8 @@ def create_layout(app):
                                     )
                                 ]
                             ),
-                            html.Div(id="injection-status")
+                            html.Div(id="injection-status"),
+                            dcc.Download(id="download-pdf-component")
                         ],
                     ),
                     # KPI row: Gauge + Model Comparison side by side

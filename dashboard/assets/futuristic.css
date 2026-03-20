@@ -459,6 +459,31 @@ input.dash-dropdown-search,
   transform: translateY(1px);
 }
 
+.cyber-btn-export {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.5);
+  color: var(--accent-emerald, #10b981);
+  padding: 0.6rem 1.25rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  font-family: 'Fira Code', monospace;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+  box-shadow: none;
+}
+
+.cyber-btn-export:hover {
+  background: rgba(16, 185, 129, 0.25);
+  border-color: var(--accent-emerald, #10b981);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.cyber-btn-export:active {
+  transform: translateY(1px);
+}
+
 .injector-disclaimer {
   font-size: 0.70rem;
   color: var(--text-muted);
