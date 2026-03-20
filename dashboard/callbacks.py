@@ -8,7 +8,7 @@ Callbacks read ONLY from the SQLite database — no model inference here.
 import sqlite3
 import pandas as pd
 import plotly.graph_objects as go
-from dash import Input, Output, callback
+from dash import Input, Output, callback, State, html, ctx, no_update
 
 import sys
 import os
@@ -272,3 +272,118 @@ def update_alert_table(n_intervals):
         return df.to_dict("records")
     except Exception:
         return []
+
+# ════════════════════════════════════════════════════════════════════
+# Callback 5 — update_modal
+# ════════════════════════════════════════════════════════════════════
+@callback(
+    Output("anomaly-modal-overlay", "className"),
+    Output("modal-title", "children"),
+    Output("modal-body", "children"),
+    Input("alert-table", "active_cell"),
+    Input("close-modal-btn", "n_clicks"),
+    State("alert-table", "data"),
+    prevent_initial_call=True,
+)
+def toggle_modal(active_cell, close_clicks, table_data):
+    trigger = ctx.triggered_id
+    
+    if trigger == "close-modal-btn":
+        return "cyber-modal-overlay hidden", no_update, no_update
+        
+    if trigger == "alert-table" and active_cell is not None:
+        row_idx = active_cell["row"]
+        if not table_data or row_idx >= len(table_data):
+            return no_update, no_update, no_update
+            
+        row = table_data[row_idx]
+        
+        # Build explanation
+        ticker = row.get("ticker", "Unknown")
+        ts = row.get("timestamp", "Unknown")
+        zscore = float(row.get("zscore_score", 0))
+        iso_forest = float(row.get("if_score", 0))
+        lstm = float(row.get("lstm_score", 0))
+        ensemble = float(row.get("ensemble_score", 0))
+        is_flagged = int(row.get("is_flagged", 0))
+        
+        title = f"LOG ENTRY DETAILED VIEW"
+        
+        is_test = "(TEST)" in ticker
+        origin_text = "⚠️ SYNTHETIC INJECTION: Manually triggered by an Admin for system testing." if is_test else "🟢 NATURAL MARKET EVENT: Automatically detected from live telemetry."
+        origin_color = "#f43f5e" if is_test else "#10b981"
+        origin_bg = "rgba(244, 63, 94, 0.1)" if is_test else "rgba(16, 185, 129, 0.1)"
+        
+        body = [
+            html.Div(f"Analysis for {ticker} at {ts}", style={"fontSize": "1.1rem", "marginBottom": "0.5rem", "color": "#F8FAFC"}),
+            html.Div(
+                origin_text, 
+                style={
+                    "padding": "10px", 
+                    "backgroundColor": origin_bg, 
+                    "color": origin_color, 
+                    "borderLeft": f"3px solid {origin_color}",
+                    "borderRadius": "4px",
+                    "marginBottom": "1.5rem",
+                    "fontSize": "0.85rem",
+                    "fontWeight": "bold"
+                }
+            ),
+            html.Div("MODEL BREAKDOWN:", style={"color": "#06b6d4", "fontFamily": "Fira Code", "marginBottom": "0.5rem"}),
+        ]
+        
+        # Explanation strings
+        z_exp = "Unusual statistical trading volume or price distribution detected." if zscore > 0.5 else "Statistical volatility remains within expected normal bounds."
+        if_exp = "Clustering algorithms detected isolated out-of-bounds data points." if iso_forest > 0.5 else "Data points cluster normally with historical pricing."
+        lstm_exp = "Neural Network failed to reconstruct the recent time-sequence, indicating a drastic pattern collapse." if lstm > 0.5 else "Recent sequence tracks perfectly with deep learning training memories."
+        
+        models = [
+            ("Z-Score", zscore, z_exp),
+            ("Isolation Forest", iso_forest, if_exp),
+            ("LSTM Autoencoder", lstm, lstm_exp)
+        ]
+        
+        for name, score, desc in models:
+            score_color = "modal-danger" if score > 0.5 else "modal-highlight"
+            body.append(
+                html.Div(className="modal-score-item", children=[
+                    html.Span(name, style={"fontWeight": "bold"}),
+                    html.Span(f"{score:.3f} - ({'ANOMALOUS' if score > 0.5 else 'NORMAL'})", className=score_color)
+                ])
+            )
+            body.append(html.Div(desc, style={"marginBottom": "1rem", "fontSize": "0.85rem", "paddingLeft": "0.5rem"}))
+            
+        summary_color = "modal-danger" if is_flagged else "modal-highlight"
+        status_text = "System triggered an official anomaly alert because 2 or more models crossed the threshold." if is_flagged else "Consensus believes the market behavior is benign."
+        
+        body.append(html.Hr(style={"borderColor": "rgba(255,255,255,0.1)", "marginTop": "1.5rem", "marginBottom": "1rem"}))
+        body.append(html.Div(className="modal-score-item", children=[
+            html.Span("ENSEMBLE CONSENSUS:", style={"fontFamily": "Fira Code", "color": "#a1a1aa"}),
+            html.Span(f"{ensemble:.3f} | {'FLAGGED' if is_flagged else 'NOT FLAGGED'}", className=summary_color)
+        ]))
+        body.append(html.Div(status_text, style={"fontSize": "0.95rem"}))
+        
+        return "cyber-modal-overlay", title, body
+        
+    return no_update, no_update, no_update
+
+# ════════════════════════════════════════════════════════════════════
+# Callback 6 — inject_anomaly
+# ════════════════════════════════════════════════════════════════════
+@callback(
+    Output("injection-status", "children"),
+    Input("inject-status-btn", "n_clicks"),
+    State("ticker-dropdown", "value"),
+    prevent_initial_call=True,
+)
+def inject_anomaly_into_ticker(n_clicks, ticker):
+    if n_clicks is None or not ticker:
+        return no_update
+        
+    flag_path = os.path.join(os.path.dirname(__file__), "..", f"inject_{ticker}.flag")
+    with open(flag_path, "w") as f:
+        f.write("trigger")
+    return html.Div(
+        f"🚨 SYNTHETIC CRASH ARMED FOR {ticker}! The models will flag it within 60 seconds.",
+        className="toast-message"
+    )

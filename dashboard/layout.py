@@ -56,6 +56,21 @@ def create_layout(app):
                                 clearable=False,
                                 className="cyber-dropdown",
                             ),
+                            html.Div(
+                                className="injector-container",
+                                children=[
+                                    html.Button(
+                                        "INJECT SYNTHETIC ANOMALY",
+                                        id="inject-status-btn",
+                                        className="cyber-btn-inject"
+                                    ),
+                                    html.Span(
+                                        "[TEST PURPOSES ONLY - NOT REAL DATA]",
+                                        className="injector-disclaimer"
+                                    )
+                                ]
+                            ),
+                            html.Div(id="injection-status")
                         ],
                     ),
                     # KPI row: Gauge + Model Comparison side by side
@@ -175,6 +190,24 @@ def create_layout(app):
                                         "fontWeight": "bold",
                                     }
                                 ],
+                                css=[
+                                    {
+                                        "selector": "tr:hover",
+                                        "rule": "background-color: transparent !important;"
+                                    },
+                                    {
+                                        "selector": "tr:hover td",
+                                        "rule": "background-color: rgba(6, 182, 212, 0.1) !important; color: #06b6d4 !important;"
+                                    },
+                                    {
+                                        "selector": "td.focused",
+                                        "rule": "background-color: rgba(6, 182, 212, 0.15) !important; outline: 1px solid #06b6d4 !important; box-shadow: none !important;"
+                                    },
+                                    {
+                                        "selector": ".dash-spreadsheet-container .dash-spreadsheet-inner *",
+                                        "rule": "outline: none !important;"
+                                    }
+                                ],
                                 page_size=15,
                             ),
                         ],
@@ -256,6 +289,26 @@ def create_layout(app):
                         n_intervals=0,
                     ),
                 ],
+            ),
+            # ── Modal Container ──────────────────────────────────────
+            html.Div(
+                id="anomaly-modal-overlay",
+                className="cyber-modal-overlay hidden",
+                children=[
+                    html.Div(
+                        className="cyber-modal-content",
+                        children=[
+                            html.Div(
+                                className="cyber-modal-header",
+                                children=[
+                                    html.H3("ANOMALY LOG EXPLANATION", className="chart-title", id="modal-title"),
+                                    html.Button("✕", id="close-modal-btn", className="cyber-btn-close"),
+                                ]
+                            ),
+                            html.Div(id="modal-body", className="cyber-modal-body")
+                        ]
+                    )
+                ]
             ),
         ],
     )

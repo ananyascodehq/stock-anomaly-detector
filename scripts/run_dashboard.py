@@ -56,10 +56,21 @@ def run_inference_pipeline(ticker: str, models: dict, config: Config) -> None:
     try:
         # 1. Fetch latest bars (need at least ~60 for features + LSTM)
         df = fetch_latest_bars(ticker, n_bars=100, config=config)
-        if df is None or df.empty:
-            return
+        # 2. Check for synthetic injection flag
+        flag_file = os.path.join(os.path.dirname(__file__), "..", f"inject_{ticker}.flag")
+        is_synthetic = False
+        if os.path.exists(flag_file):
+            print(f"[INJECTOR] 🚨 Synthetic Flash Crash applied to {ticker} 🚨")
+            is_synthetic = True
+            # Force a massive 15% price crash and 50x volume surge on the newest row
+            df.iloc[-1, df.columns.get_loc("close")] *= 0.85
+            df.iloc[-1, df.columns.get_loc("volume")] *= 50.0
+            try:
+                os.remove(flag_file)
+            except Exception:
+                pass
 
-        # 2. Insert into DB
+        # 3. Insert into DB
         insert_bars(df, config.DB_PATH)
 
         # 3. Compute features
@@ -92,6 +103,8 @@ def run_inference_pipeline(ticker: str, models: dict, config: Config) -> None:
 
         # 7. Log to anomaly_log table
         timestamp = str(df.loc[features_df.index[-1], 'timestamp'])
+        db_ticker = f"{ticker} (TEST)" if is_synthetic else ticker
+        
         with sqlite3.connect(config.DB_PATH) as conn:
             conn.execute(
                 """
@@ -100,7 +113,7 @@ def run_inference_pipeline(ticker: str, models: dict, config: Config) -> None:
                 VALUES (?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
-                    ticker, timestamp,
+                    db_ticker, timestamp,
                     zscore_score, if_score, lstm_score,
                     result["ensemble_score"],
                     1 if result["is_flagged"] else 0,
