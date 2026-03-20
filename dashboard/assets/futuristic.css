@@ -408,6 +408,24 @@ input.dash-dropdown-search,
 .modal-highlight { color: var(--accent-cyan); font-weight: bold; }
 .modal-danger { color: var(--accent-rose); font-weight: bold; }
 
+/* Custom Futuristic Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2); 
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(6, 182, 212, 0.3); 
+  border-radius: 4px;
+  transition: background 0.3s;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-cyan); 
+}
+
 /* Dashboard Injector specific */
 .injector-container {
   display: flex;

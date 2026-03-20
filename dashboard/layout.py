@@ -84,10 +84,14 @@ def create_layout(app):
                                     html.Div(
                                         "ENSEMBLE_SCORE", className="kpi-title"
                                     ),
+                                    html.Div(
+                                        "A weighted consensus of all 3 AI models. A score over 0.5 triggers an official system alert.",
+                                        style={"fontSize": "0.75rem", "color": "#a1a1aa", "marginBottom": "5px", "textAlign": "center", "fontFamily": "Inter, sans-serif"}
+                                    ),
                                     dcc.Graph(
                                         id="score-gauge",
                                         config={"displayModeBar": False},
-                                        style={"height": "220px"},
+                                        style={"height": "200px"},
                                     ),
                                 ],
                             ),
@@ -98,10 +102,14 @@ def create_layout(app):
                                     html.Div(
                                         "MODEL_COMPARISON", className="kpi-title"
                                     ),
+                                    html.Div(
+                                        "Real-time reading of precisely which individual model is detecting abnormal market behavior.",
+                                        style={"fontSize": "0.75rem", "color": "#a1a1aa", "marginBottom": "5px", "textAlign": "center", "fontFamily": "Inter, sans-serif"}
+                                    ),
                                     dcc.Graph(
                                         id="model-comparison",
                                         config={"displayModeBar": False},
-                                        style={"height": "220px"},
+                                        style={"height": "200px"},
                                     ),
                                 ],
                             ),
@@ -160,8 +168,11 @@ def create_layout(app):
                                 ],
                                 style_table={
                                     "overflowX": "auto",
+                                    "overflowY": "auto",
+                                    "height": "400px",
                                     "borderRadius": "4px",
                                 },
+                                fixed_rows={"headers": True},
                                 style_header={
                                     "backgroundColor": "rgba(24, 24, 27, 0.95)",
                                     "color": "#06b6d4",
@@ -208,7 +219,7 @@ def create_layout(app):
                                         "rule": "outline: none !important;"
                                     }
                                 ],
-                                page_size=15,
+                                page_action="none",
                             ),
                         ],
                     ),

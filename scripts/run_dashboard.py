@@ -47,6 +47,8 @@ def load_all_models(config: Config) -> dict:
     return models
 
 
+last_processed_timestamps = {}
+
 def run_inference_pipeline(ticker: str, models: dict, config: Config) -> None:
     """Run the full inference pipeline for a single ticker."""
     import sqlite3
@@ -54,8 +56,14 @@ def run_inference_pipeline(ticker: str, models: dict, config: Config) -> None:
     import numpy as np
 
     try:
+        global last_processed_timestamps
         # 1. Fetch latest bars (need at least ~60 for features + LSTM)
         df = fetch_latest_bars(ticker, n_bars=100, config=config)
+        if df is None or df.empty:
+            return
+            
+        latest_ts = str(df.iloc[-1]['timestamp'])
+
         # 2. Check for synthetic injection flag
         flag_file = os.path.join(os.path.dirname(__file__), "..", f"inject_{ticker}.flag")
         is_synthetic = False
@@ -69,6 +77,15 @@ def run_inference_pipeline(ticker: str, models: dict, config: Config) -> None:
                 os.remove(flag_file)
             except Exception:
                 pass
+        else:
+            # Prevent duplicate model inference when the stock market is closed
+            # (yfinance returns the static Friday final minute over and over).
+            if last_processed_timestamps.get(ticker) == latest_ts:
+                # Still update DB so any previous synthetic mutations are overwritten
+                insert_bars(df, config.DB_PATH)
+                return
+                
+        last_processed_timestamps[ticker] = latest_ts
 
         # 3. Insert into DB
         insert_bars(df, config.DB_PATH)
