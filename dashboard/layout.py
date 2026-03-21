@@ -84,9 +84,10 @@ def create_layout(app):
                         className="sidebar-bottom",
                         children=[
                             html.Button(
-                                "Inject Anomaly",
+                                "Simulate Anomaly",
                                 id="inject-status-btn",
                                 className="sidebar-inject-btn",
+                                title="Inject synthetic anomaly to test detection system",
                                 n_clicks=0,
                             ),
                             html.Div(id="injection-status"),
@@ -136,9 +137,13 @@ def create_layout(app):
                                     html.Div(
                                         className="sensitivity-control",
                                         children=[
-                                            html.Span("SENSITIVITY:", className="sensitivity-label"),
-                                            html.Span("0.50", className="sensitivity-value"),
-                                            html.Span("Higher = more detections", className="sensitivity-hint"),
+                                            html.Span("SENSITIVITY THRESHOLD:", className="sensitivity-label"),
+                                            dcc.Slider(
+                                                id="sensitivity-slider", min=0.1, max=0.9, step=0.01, value=0.5,
+                                                marks=None,
+                                                tooltip={"placement": "bottom", "always_visible": False}
+                                            ),
+                                            html.Span(id="detected-count-container", className="sensitivity-hint"),
                                         ],
                                     ),
                                     html.Button(
@@ -247,6 +252,8 @@ def create_layout(app):
                                     html.Div(id="ensemble-delta-display", className="ensemble-delta"),
                                     html.Div(id="ensemble-status-label", className="ensemble-status-label"),
                                     html.Div(id="ensemble-context", className="ensemble-context"),
+                                    html.Div("Severity Logic: >0.5 HIGH, >0.4 MED", style={"fontSize": "10px", "color": "gray", "textAlign": "center"}),
+                                    dcc.Graph(id="anomaly-sparkline", config={"displayModeBar": False}, style={"height": "50px", "marginTop": "10px"}),
                                 ],
                             ),
                         ],

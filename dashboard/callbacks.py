@@ -78,26 +78,32 @@ def update_page_title(ticker):
     Output("price-value", "children"),
     Output("price-delta", "children"),
     Output("price-delta", "className"),
+    Output("detected-count-container", "children"),
     Input("update-interval", "n_intervals"),
     Input("selected-ticker", "data"),
+    Input("sensitivity-slider", "value"),
 )
-def update_price_chart(n_intervals, ticker):
+def update_price_chart(n_intervals, ticker, sensitivity_val):
     fig = go.Figure()
     price_str = "--"
     delta_str = ""
     delta_class = "price-delta"
 
     try:
+        if sensitivity_val is None:
+            sensitivity_val = 0.5
         conn = _get_conn()
         bars_df = pd.read_sql_query(
             "SELECT timestamp, close, volume FROM ohlcv WHERE ticker = ? ORDER BY timestamp DESC LIMIT 100",
             conn, params=(ticker,),
         )
         anomalies_df = pd.read_sql_query(
-            "SELECT timestamp, ensemble_score FROM anomaly_log WHERE ticker = ? AND is_flagged = 1 ORDER BY timestamp DESC LIMIT 100",
-            conn, params=(ticker,),
+            "SELECT timestamp, ensemble_score, zscore_score, if_score, lstm_score FROM anomaly_log WHERE ticker = ? AND ensemble_score >= ? ORDER BY timestamp DESC LIMIT 100",
+            conn, params=(ticker, sensitivity_val),
         )
         conn.close()
+
+        num_anomalies = len(anomalies_df)
 
         if not bars_df.empty:
             bars_df = bars_df.sort_values("timestamp")
@@ -131,16 +137,42 @@ def update_price_chart(n_intervals, ticker):
         if not anomalies_df.empty:
             merged = anomalies_df.merge(bars_df, on="timestamp", how="inner")
             if not merged.empty:
-                fig.add_trace(go.Scatter(
-                    x=merged["timestamp"], y=merged["close"],
-                    mode="markers", name="Anomaly",
-                    marker=dict(color=DANGER, size=8, symbol="circle",
-                                line=dict(width=1, color="rgba(255,90,95,0.5)")),
-                    hovertemplate="<b>ANOMALY</b><br>%{x}<br>$%{y:.2f}<extra></extra>",
-                ))
+                high_df = merged[merged["ensemble_score"] >= sensitivity_val + 0.1]
+                med_df = merged[merged["ensemble_score"] < sensitivity_val + 0.1]
+                
+                # Helper function for hover text
+                def build_hover(row):
+                    triggers = []
+                    if row["zscore_score"] > 0.5: triggers.append("ZScore")
+                    if row["if_score"] > 0.6: triggers.append("Isolation Forest")
+                    if row["lstm_score"] > 0.5: triggers.append("LSTM")
+                    return f"<b>{row['timestamp']}</b><br>Score: {row['ensemble_score']:.3f}<br>Triggers: {', '.join(triggers)}"
+                
+                if not high_df.empty:
+                    high_hover = high_df.apply(build_hover, axis=1)
+                    fig.add_trace(go.Scatter(
+                        x=high_df["timestamp"], y=high_df["close"],
+                        mode="markers", name="High Anomaly",
+                        marker=dict(color=DANGER, size=9, symbol="circle",
+                                    line=dict(width=1, color="rgba(255,90,95,0.7)")),
+                        hovertemplate="%{text}<extra></extra>",
+                        text=high_hover
+                    ))
+                
+                if not med_df.empty:
+                    med_hover = med_df.apply(build_hover, axis=1)
+                    fig.add_trace(go.Scatter(
+                        x=med_df["timestamp"], y=med_df["close"],
+                        mode="markers", name="Moderate Anomaly",
+                        marker=dict(color=MED, size=7, symbol="circle",
+                                    line=dict(width=1, color="rgba(245,166,35,0.7)")),
+                        hovertemplate="%{text}<extra></extra>",
+                        text=med_hover
+                    ))
 
     except Exception:
-        pass
+        num_anomalies = 0
+
 
     fig.update_layout(
         plot_bgcolor=PLOT_BG, paper_bgcolor=PAPER_BG, font=FONT,
@@ -161,7 +193,7 @@ def update_price_chart(n_intervals, ticker):
             font=dict(color="#E6EDF3", family="Inter, system-ui, sans-serif", size=12),
         ),
     )
-    return fig, price_str, delta_str, delta_class
+    return fig, price_str, delta_str, delta_class, f"Detected logs: {num_anomalies}"
 
 
 # ================================================================
@@ -169,6 +201,7 @@ def update_price_chart(n_intervals, ticker):
 # ================================================================
 @app.callback(
     Output("score-gauge", "figure"),
+    Output("anomaly-sparkline", "figure"),
     Output("ensemble-score-display", "children"),
     Output("ensemble-score-display", "className"),
     Output("ensemble-delta-display", "children"),
@@ -185,27 +218,44 @@ def update_ensemble(n_intervals, ticker):
     last_anomaly_ago = "N/A"
     models_triggered = 0
 
+    sparkline_fig = go.Figure()
+    sparkline_fig.update_layout(
+        plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
+        margin=dict(l=0, r=0, t=10, b=0),
+        xaxis=dict(visible=False), yaxis=dict(visible=False, range=[0, 1.0]),
+        height=40, hovermode="x unified"
+    )
+
     try:
         conn = _get_conn()
-        rows = pd.read_sql_query(
-            "SELECT ensemble_score, zscore_score, if_score, lstm_score, created_at FROM anomaly_log WHERE ticker = ? ORDER BY created_at DESC LIMIT 2",
+        recent = pd.read_sql_query(
+            "SELECT timestamp, ensemble_score, zscore_score, if_score, lstm_score, created_at FROM anomaly_log WHERE ticker = ? ORDER BY created_at DESC LIMIT 30",
             conn, params=(ticker,),
         )
-        # Last anomaly time
+        
         last_flag = pd.read_sql_query(
             "SELECT created_at FROM anomaly_log WHERE ticker = ? AND is_flagged = 1 ORDER BY created_at DESC LIMIT 1",
             conn, params=(ticker,),
         )
         conn.close()
 
-        if not rows.empty:
-            score = float(rows.iloc[0]["ensemble_score"])
-            z = float(rows.iloc[0]["zscore_score"])
-            i = float(rows.iloc[0]["if_score"])
-            l = float(rows.iloc[0]["lstm_score"])
+        if not recent.empty:
+            score = float(recent.iloc[0]["ensemble_score"])
+            z = float(recent.iloc[0]["zscore_score"])
+            i = float(recent.iloc[0]["if_score"])
+            l = float(recent.iloc[0]["lstm_score"])
             models_triggered = sum(1 for threshold, s in [(0.5, z), (0.6, i), (0.5, l)] if s > threshold)
-            if len(rows) > 1:
-                prev_score = float(rows.iloc[1]["ensemble_score"])
+            if len(recent) > 1:
+                prev_score = float(recent.iloc[1]["ensemble_score"])
+
+            # Render Sparkline
+            rev = recent.iloc[::-1]
+            sparkline_fig.add_trace(go.Scatter(
+                x=rev["timestamp"], y=rev["ensemble_score"],
+                mode="lines", line=dict(color="#4A90E2", width=2),
+                fill="tozeroy", fillcolor="rgba(74,144,226,0.1)",
+                hovertemplate="Score: %{y:.2f}<extra></extra>"
+            ))
 
         if not last_flag.empty:
             try:
@@ -272,7 +322,7 @@ def update_ensemble(n_intervals, ticker):
     # Context
     context_text = f"Last anomaly: {last_anomaly_ago} | Model status: {models_triggered}/3 triggered"
 
-    return fig, score_text, score_class, delta_text, delta_class, status_text, status_class, context_text
+    return fig, sparkline_fig, score_text, score_class, delta_text, delta_class, status_text, status_class, context_text
 
 
 # ================================================================
@@ -347,8 +397,11 @@ def update_model_distribution(n_intervals, ticker):
     Output("alert-table", "data"),
     Input("update-interval", "n_intervals"),
     Input("flagged-toggle", "value"),
+    Input("sensitivity-slider", "value"),
 )
-def update_alert_table(n_intervals, flagged_toggle):
+def update_alert_table(n_intervals, flagged_toggle, sensitivity_val):
+    if sensitivity_val is None:
+        sensitivity_val = 0.5
     try:
         conn = _get_conn()
         df = pd.read_sql_query(
@@ -363,15 +416,15 @@ def update_alert_table(n_intervals, flagged_toggle):
 
         # Compute severity
         def get_severity(es):
-            if es > 0.5: return "HIGH"
-            if es >= 0.4: return "MEDIUM"
+            if es >= sensitivity_val + 0.1: return "HIGH"
+            if es >= sensitivity_val: return "MEDIUM"
             return "LOW"
 
         df["severity"] = df["ensemble_score"].apply(get_severity)
-        df["status"] = df["is_flagged"].apply(lambda x: "FLAGGED" if x == 1 else "NORMAL")
+        df["status"] = df["ensemble_score"].apply(lambda x: "FLAGGED" if x >= sensitivity_val else "NORMAL")
 
         if flagged_toggle and "flagged" in flagged_toggle:
-            df = df[df["is_flagged"] == 1]
+            df = df[df["ensemble_score"] >= sensitivity_val]
 
         return df[["timestamp", "ticker", "severity", "ensemble_score", "status"]].to_dict("records")
     except Exception:
