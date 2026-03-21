@@ -1,5 +1,8 @@
+import os
 from dataclasses import dataclass, field
 from typing import List
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 @dataclass
 class Config:
@@ -43,5 +46,5 @@ class Config:
     ALERT_EMAIL_SMTP_PORT: int = 587
 
     # Paths
-    DB_PATH: str = "data/market_data.db"
-    MODEL_SAVE_PATH: str = "data/models/"
+    DB_PATH: str = os.path.join(BASE_DIR, "data", "market_data.db")
+    MODEL_SAVE_PATH: str = os.path.join(BASE_DIR, "data", "models") + "/"

@@ -163,6 +163,7 @@ if __name__ == "__main__":
     config = Config()
 
     # Ensure DB is ready
+    os.makedirs(os.path.dirname(config.DB_PATH), exist_ok=True)
     init_db(config.DB_PATH)
 
     # Load trained models
@@ -177,5 +178,6 @@ if __name__ == "__main__":
 
     # Launch Dash app (blocking)
     app = create_app()
-    print(f"[BOOT] Dashboard starting on http://127.0.0.1:{config.DASH_PORT}/")
-    app.run(port=config.DASH_PORT, debug=config.DASH_DEBUG)
+    port = int(os.environ.get("PORT", 10000))
+    print(f"[BOOT] Dashboard starting on http://0.0.0.0:{port}/")
+    app.run(host="0.0.0.0", port=port)
