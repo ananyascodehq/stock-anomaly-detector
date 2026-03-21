@@ -180,4 +180,5 @@ if __name__ == "__main__":
     app = create_app()
     port = int(os.environ.get("PORT", 10000))
     print(f"[BOOT] Dashboard starting on http://0.0.0.0:{port}/")
+    print(">>> STARTING DASH SERVER <<<")
     app.run(host="0.0.0.0", port=port)
