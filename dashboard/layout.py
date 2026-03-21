@@ -137,13 +137,9 @@ def create_layout(app):
                                     html.Div(
                                         className="sensitivity-control",
                                         children=[
-                                            html.Span("SENSITIVITY THRESHOLD:", className="sensitivity-label"),
-                                            dcc.Slider(
-                                                id="sensitivity-slider", min=0.1, max=0.9, step=0.01, value=0.5,
-                                                marks=None,
-                                                tooltip={"placement": "bottom", "always_visible": False}
-                                            ),
-                                            html.Span(id="detected-count-container", className="sensitivity-hint"),
+                                            html.Span("SENSITIVITY:", className="sensitivity-label"),
+                                            html.Span("0.50", className="sensitivity-value"),
+                                            html.Span("Higher = more detections", className="sensitivity-hint"),
                                         ],
                                     ),
                                     html.Button(

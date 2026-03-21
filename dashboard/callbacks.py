@@ -78,20 +78,17 @@ def update_page_title(ticker):
     Output("price-value", "children"),
     Output("price-delta", "children"),
     Output("price-delta", "className"),
-    Output("detected-count-container", "children"),
     Input("update-interval", "n_intervals"),
     Input("selected-ticker", "data"),
-    Input("sensitivity-slider", "value"),
 )
-def update_price_chart(n_intervals, ticker, sensitivity_val):
+def update_price_chart(n_intervals, ticker):
+    sensitivity_val = 0.5
     fig = go.Figure()
     price_str = "--"
     delta_str = ""
     delta_class = "price-delta"
 
     try:
-        if sensitivity_val is None:
-            sensitivity_val = 0.5
         conn = _get_conn()
         bars_df = pd.read_sql_query(
             "SELECT timestamp, close, volume FROM ohlcv WHERE ticker = ? ORDER BY timestamp DESC LIMIT 100",
@@ -193,7 +190,7 @@ def update_price_chart(n_intervals, ticker, sensitivity_val):
             font=dict(color="#E6EDF3", family="Inter, system-ui, sans-serif", size=12),
         ),
     )
-    return fig, price_str, delta_str, delta_class, f"Detected logs: {num_anomalies}"
+    return fig, price_str, delta_str, delta_class
 
 
 # ================================================================
@@ -397,11 +394,9 @@ def update_model_distribution(n_intervals, ticker):
     Output("alert-table", "data"),
     Input("update-interval", "n_intervals"),
     Input("flagged-toggle", "value"),
-    Input("sensitivity-slider", "value"),
 )
-def update_alert_table(n_intervals, flagged_toggle, sensitivity_val):
-    if sensitivity_val is None:
-        sensitivity_val = 0.5
+def update_alert_table(n_intervals, flagged_toggle):
+    sensitivity_val = 0.5
     try:
         conn = _get_conn()
         df = pd.read_sql_query(
