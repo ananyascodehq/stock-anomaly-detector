@@ -248,7 +248,11 @@ def create_layout(app):
                                     html.Div(id="ensemble-delta-display", className="ensemble-delta"),
                                     html.Div(id="ensemble-status-label", className="ensemble-status-label"),
                                     html.Div(id="ensemble-context", className="ensemble-context"),
-                                    html.Div("Severity Logic: >0.5 HIGH, >0.4 MED", style={"fontSize": "10px", "color": "gray", "textAlign": "center"}),
+                                    html.Div(
+                                        "Calculation: (Z × 0.25) + (IF × 0.35) + (LSTM × 0.40)",
+                                        style={"fontSize": "10px", "color": "rgba(157, 167, 179, 0.7)", "textAlign": "center", "marginTop": "8px", "fontWeight": "500", "fontFamily": "monospace"}
+                                    ),
+                                    html.Div("Severity Logic: >0.5 HIGH, >0.4 MED", style={"fontSize": "10px", "color": "gray", "textAlign": "center", "marginTop": "4px"}),
                                     dcc.Graph(id="anomaly-sparkline", config={"displayModeBar": False}, style={"height": "50px", "marginTop": "10px"}),
                                 ],
                             ),
