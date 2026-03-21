@@ -26,7 +26,7 @@ ENV/
 data/market_data.db
 data/market_data.db-wal
 data/market_data.db-shm
-data/models/*
-!data/models/.gitkeep
+# data/models/*
+# !data/models/.gitkeep
 
 *.log
