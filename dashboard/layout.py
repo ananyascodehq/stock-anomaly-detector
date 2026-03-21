@@ -394,6 +394,39 @@ def create_layout(app):
                                     ]),
                                     html.P("Long Short-Term Memory neural networks trained to reconstruct 'normal' data. High reconstruction error flags complex, temporal anomalies.", className="support-card-text")
                                 ])
+                            ]),
+                            
+                            # Ensemble Calculation Logic Block
+                            html.Div(className="support-section-logic", children=[
+                                html.H3("Ensemble Calculation Logic", style={"color": "#4A90E2", "marginBottom": "16px", "fontSize": "18px"}),
+                                html.Div(
+                                    "(Z-Score × 0.25) + (Isolation Forest × 0.35) + (LSTM × 0.40) = FINAL SCORE",
+                                    style={
+                                        "padding": "20px",
+                                        "backgroundColor": "rgba(74, 144, 226, 0.05)",
+                                        "border": "1px solid rgba(74, 144, 226, 0.2)",
+                                        "borderRadius": "8px",
+                                        "fontFamily": "monospace",
+                                        "fontSize": "16px",
+                                        "color": "#E6EDF3",
+                                        "textAlign": "center",
+                                        "marginBottom": "24px"
+                                    }
+                                ),
+                                html.Div(className="support-grid-3", children=[
+                                    html.Div(children=[
+                                        html.H5("Z-Score (25%)", style={"color": "#9DA7B3", "marginBottom": "8px"}),
+                                        html.P("Serves as a fast trigger for simple price-volume spikes. Lowest weight to avoid false-positives from standard market volatility.", style={"fontSize": "13px", "lineHeight": "1.5"})
+                                    ]),
+                                    html.Div(children=[
+                                        html.H5("Isolation Forest (35%)", style={"color": "#9DA7B3", "marginBottom": "8px"}),
+                                        html.P("Detects multidimensional outliers. Medium weight for its ability to spot unnatural relationships between volume and price.", style={"fontSize": "13px", "lineHeight": "1.5"})
+                                    ]),
+                                    html.Div(children=[
+                                        html.H5("LSTM Autoencoder (40%)", style={"color": "#9DA7B3", "marginBottom": "8px"}),
+                                        html.P("Highest weight as it models temporal sequences. It flags deviations from complex historical patterns, reducing signal noise.", style={"fontSize": "13px", "lineHeight": "1.5"})
+                                    ])
+                                ])
                             ])
                         ]),
 
