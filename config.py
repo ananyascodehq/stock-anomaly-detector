@@ -11,7 +11,7 @@ class Config:
 
     # Data ingestion
     INTERVAL: str = "1m"                  # yfinance bar size
-    HISTORICAL_PERIOD: str = "30d"        # Training data window
+    HISTORICAL_PERIOD: str = "60d"        # Training data window
     POLL_INTERVAL_SECONDS: int = 60       # Live polling frequency
 
     # Feature engineering
